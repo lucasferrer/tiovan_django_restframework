@@ -1,0 +1,67 @@
+# Use root/example as user/password credentials
+version: '3.1'
+
+volumes:
+    tiovanpostgresdata:
+networks: 
+    tiovan-network:
+      driver: bridge
+
+services:
+
+  backend:
+    container_name: "backend"
+    build: 
+      context: .
+      dockerfile: prod/dockerfiles/tiovan_backend/Dockerfile
+    # command: python manage.py runserver 0.0.0.0:8000
+    # command: ls 
+    volumes: 
+      - ./prod/tiovan_backend:/code
+      - ./prod/certs:/etc/nginx/certs
+      - ./prod/nginx:/etc/nginx/conf.d
+      - ./prod/certbot/conf:/etc/letsencrypt
+      - ./prod/certbot/www:/var/www/certbot
+    ports: 
+      - 80:80
+      - 443:443
+      # - 80:80
+    # command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    networks: 
+      - tiovan-network
+
+  certbot:
+    container_name: "certbot"
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./prod/certbot/conf:/etc/letsencrypt
+      - ./prod/certbot/www:/var/www/certbot
+    networks: 
+      - tiovan-network
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+  postgres:
+      container_name: "postgres"
+      image: postgres
+      restart: always
+      environment:
+          POSTGRES_PASSWORD: 1be9dca06d315a07d6a89257e9e4f17cdd2570ccba4666d00fc7cc99dc2bd8d5
+
+      ports:
+          - 5432:5432
+      volumes:
+          - tiovanpostgresdata:/var/lib/postgresql/data
+      networks: 
+        - tiovan-network
+
+  pgadmin:
+      container_name: "pgadmin"
+      image: dpage/pgadmin4
+      environment:
+        PGADMIN_DEFAULT_EMAIL: "admin@tiovan.com.br"
+        PGADMIN_DEFAULT_PASSWORD: "1be9dca06d315a07d6a89257e9e4f17cdd2570ccba4666d00fc7cc99dc2bd8d5"
+      ports:
+        - "8080:80"
+      networks: 
+        - tiovan-network
