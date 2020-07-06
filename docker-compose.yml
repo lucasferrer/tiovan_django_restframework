@@ -9,22 +9,59 @@ networks:
 
 services:
 
-  backend:
-    container_name: "backend"
-    build: 
+  load-balancer:
+    container_name: "load-balancer"
+    build:
       context: .
-      dockerfile: prod/dockerfiles/tiovan_backend/Dockerfile
-    # command: python manage.py runserver 0.0.0.0:8000
-    # command: ls 
+      dockerfile: prod/dockerfiles/tiovan_backend/load_balancer/Dockerfile
     volumes: 
-      - ./prod/tiovan_backend:/code
-      - ./prod/certs:/etc/nginx/certs
-      - ./prod/nginx:/etc/nginx/conf.d
+      - ./prod/certs/load_balancer:/etc/nginx/certs
+      - ./prod/nginx/load_balancer:/etc/nginx/conf.d
       - ./prod/certbot/conf:/etc/letsencrypt
       - ./prod/certbot/www:/var/www/certbot
     ports: 
       - 80:80
       - 443:443
+    networks: 
+      - tiovan-network
+
+  node1-backend:
+    container_name: "node1-backend"
+    build: 
+      context: .
+      dockerfile: prod/dockerfiles/tiovan_backend/node1/Dockerfile
+    # command: python manage.py runserver 0.0.0.0:8000
+    # command: ls 
+    volumes: 
+      - ./prod/tiovan_backend:/code
+      - ./prod/certs/node1:/etc/nginx/certs
+      - ./prod/nginx/node1:/etc/nginx/conf.d
+      - ./prod/certbot/conf:/etc/letsencrypt
+      - ./prod/certbot/www:/var/www/certbot
+    ports: 
+      # - 80:80
+      - 8000:8000
+      # - 80:80
+    # command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    networks: 
+      - tiovan-network
+
+  node2-backend:
+    container_name: "node2-backend"
+    build: 
+      context: .
+      dockerfile: prod/dockerfiles/tiovan_backend/node2/Dockerfile
+    # command: python manage.py runserver 0.0.0.0:8000
+    # command: ls 
+    volumes: 
+      - ./prod/tiovan_backend:/code
+      - ./prod/certs/node2:/etc/nginx/certs
+      - ./prod/nginx/node2:/etc/nginx/conf.d
+      - ./prod/certbot/conf:/etc/letsencrypt
+      - ./prod/certbot/www:/var/www/certbot
+    ports: 
+      # - 80:80
+      - 8010:8010
       # - 80:80
     # command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     networks: 

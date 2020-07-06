@@ -1,7 +1,0 @@
-django_filter==2.2.0
-djangorestframework_jwt==1.11.0
-drf_yasg==1.17.1
-Django==3.0.7
-django_filters==0.2.1
-djangorestframework==3.11.0
-django-cors-headers==3.4.0
